@@ -1,2 +1,2 @@
-# openCL-gauss-filter
-C++11 practise project to learn openCL
+# metal-playground
+C++11 practise project to learn metal
