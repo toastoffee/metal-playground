@@ -30,43 +30,43 @@
 
 class Renderer
 {
-public:
-    Renderer( MTL::Device* pDevice );
-    ~Renderer();
-    void draw( MTK::View* pView );
+    public:
+        Renderer( MTL::Device* pDevice );
+        ~Renderer();
+        void draw( MTK::View* pView );
 
-private:
-    MTL::Device* _pDevice;
-    MTL::CommandQueue* _pCommandQueue;
+    private:
+        MTL::Device* _pDevice;
+        MTL::CommandQueue* _pCommandQueue;
 };
 
 class MyMTKViewDelegate : public MTK::ViewDelegate
 {
-public:
-    MyMTKViewDelegate( MTL::Device* pDevice );
-    virtual ~MyMTKViewDelegate() override;
-    virtual void drawInMTKView( MTK::View* pView ) override;
+    public:
+        MyMTKViewDelegate( MTL::Device* pDevice );
+        virtual ~MyMTKViewDelegate() override;
+        virtual void drawInMTKView( MTK::View* pView ) override;
 
-private:
-    Renderer* _pRenderer;
+    private:
+        Renderer* _pRenderer;
 };
 
 class MyAppDelegate : public NS::ApplicationDelegate
 {
-public:
-    ~MyAppDelegate();
+    public:
+        ~MyAppDelegate();
 
-    NS::Menu* createMenuBar();
+        NS::Menu* createMenuBar();
 
-    virtual void applicationWillFinishLaunching( NS::Notification* pNotification ) override;
-    virtual void applicationDidFinishLaunching( NS::Notification* pNotification ) override;
-    virtual bool applicationShouldTerminateAfterLastWindowClosed( NS::Application* pSender ) override;
+        virtual void applicationWillFinishLaunching( NS::Notification* pNotification ) override;
+        virtual void applicationDidFinishLaunching( NS::Notification* pNotification ) override;
+        virtual bool applicationShouldTerminateAfterLastWindowClosed( NS::Application* pSender ) override;
 
-private:
-    NS::Window* _pWindow;
-    MTK::View* _pMtkView;
-    MTL::Device* _pDevice;
-    MyMTKViewDelegate* _pViewDelegate = nullptr;
+    private:
+        NS::Window* _pWindow;
+        MTK::View* _pMtkView;
+        MTL::Device* _pDevice;
+        MyMTKViewDelegate* _pViewDelegate = nullptr;
 };
 
 #pragma endregion Declarations }
@@ -123,7 +123,7 @@ NS::Menu* MyAppDelegate::createMenuBar()
 
     SEL closeWindowCb = NS::MenuItem::registerActionCallback( "windowClose", [](void*, SEL, const NS::Object*){
         auto pApp = NS::Application::sharedApplication();
-        pApp->windows()->object< NS::Window >(0)->close();
+            pApp->windows()->object< NS::Window >(0)->close();
     } );
     NS::MenuItem* pCloseWindowItem = pWindowMenu->addItem( NS::String::string( "Close Window", UTF8StringEncoding ), closeWindowCb, NS::String::string( "w", UTF8StringEncoding ) );
     pCloseWindowItem->setKeyEquivalentModifierMask( NS::EventModifierFlagCommand );
@@ -154,10 +154,10 @@ void MyAppDelegate::applicationDidFinishLaunching( NS::Notification* pNotificati
     CGRect frame = (CGRect){ {100.0, 100.0}, {512.0, 512.0} };
 
     _pWindow = NS::Window::alloc()->init(
-            frame,
-            NS::WindowStyleMaskClosable|NS::WindowStyleMaskTitled,
-            NS::BackingStoreBuffered,
-            false );
+        frame,
+        NS::WindowStyleMaskClosable|NS::WindowStyleMaskTitled,
+        NS::BackingStoreBuffered,
+        false );
 
     _pDevice = MTL::CreateSystemDefaultDevice();
 
@@ -189,8 +189,8 @@ bool MyAppDelegate::applicationShouldTerminateAfterLastWindowClosed( NS::Applica
 #pragma region ViewDelegate {
 
 MyMTKViewDelegate::MyMTKViewDelegate( MTL::Device* pDevice )
-        : MTK::ViewDelegate()
-        , _pRenderer( new Renderer( pDevice ) )
+: MTK::ViewDelegate()
+, _pRenderer( new Renderer( pDevice ) )
 {
 }
 
@@ -211,7 +211,7 @@ void MyMTKViewDelegate::drawInMTKView( MTK::View* pView )
 #pragma region Renderer {
 
 Renderer::Renderer( MTL::Device* pDevice )
-        : _pDevice( pDevice->retain() )
+: _pDevice( pDevice->retain() )
 {
     _pCommandQueue = _pDevice->newCommandQueue();
 }
