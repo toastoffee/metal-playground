@@ -1,2 +1,2 @@
-# metal-playground
-C++17 practise project to learn metal
+# glsl-compute-playground
+C++11 practise project to learn glsl compute shader
