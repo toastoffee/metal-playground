@@ -21,11 +21,16 @@ class Renderer {
 private:
     MTL::Device* _device;
     MTL::CommandQueue* _commandQueue;
+    MTL::RenderPipelineState* _PSO;
+    MTL::Buffer* _vertexPositionsBuffer;
+    MTL::Buffer* _vertexColorsBuffer;
 
 public:
     explicit Renderer(MTL::Device* device);
     ~Renderer();
 
+    void buildShaders();
+    void buildBuffers();
     void draw(MTK::View* view);
 };
 
