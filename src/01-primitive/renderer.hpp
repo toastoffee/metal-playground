@@ -17,6 +17,8 @@
 #include <AppKit/AppKit.hpp>
 #include <MetalKit/MetalKit.hpp>
 
+#include <simd/simd.h>
+
 class Renderer {
 private:
     MTL::Device* _device;

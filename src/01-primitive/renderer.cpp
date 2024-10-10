@@ -106,5 +106,35 @@ void Renderer::buildShaders() {
 }
 
 void Renderer::buildBuffers() {
+    const size_t NumVertices = 3;
+
+    simd::float3 positions[NumVertices] =
+    {
+        { -0.8f,  0.8f, 0.0f },
+        {  0.0f, -0.8f, 0.0f },
+        { +0.8f,  0.8f, 0.0f }
+    };
+
+    simd::float3 colors[NumVertices] =
+    {
+        {  1.0, 0.3f, 0.2f },
+        {  0.8f, 1.0, 0.0f },
+        {  0.8f, 0.0f, 1.0 }
+    };
+
+    const size_t positionsDataSize = NumVertices * sizeof( simd::float3 );
+    const size_t colorDataSize = NumVertices * sizeof( simd::float3 );
+
+    MTL::Buffer* pVertexPositionsBuffer = _device->newBuffer( positionsDataSize, MTL::ResourceStorageModeManaged );
+    MTL::Buffer* pVertexColorsBuffer = _device->newBuffer( colorDataSize, MTL::ResourceStorageModeManaged );
+
+    _vertexPositionsBuffer = pVertexPositionsBuffer;
+    _vertexColorsBuffer = pVertexColorsBuffer;
+
+    memcpy( _vertexPositionsBuffer->contents(), positions, positionsDataSize );
+    memcpy( _vertexColorsBuffer->contents(), colors, colorDataSize );
+
+    _vertexPositionsBuffer->didModifyRange( NS::Range::Make( 0, _vertexPositionsBuffer->length() ) );
+    _vertexColorsBuffer->didModifyRange( NS::Range::Make( 0, _vertexColorsBuffer->length() ) );
 
 }
