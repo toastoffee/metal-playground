@@ -9,7 +9,12 @@ FOREACH(project ${sample_projects})
         FILE(GLOB ${project}-src ${project}/*.cpp)
 
         # Create executable and link target
-        add_executable(${project-name} ${${project}-src})
+        add_executable(${project-name} ${${project}-src}
+                00-hello-metal/main.cpp
+                00-hello-metal/renderer.cpp
+                00-hello-metal/renderer.hpp
+                00-hello-metal/delegates.cpp
+                00-hello-metal/delegates.hpp)
         target_link_libraries(${project-name} METAL_CPP)
 
         message(STATUS "Adding ${project-name}")
