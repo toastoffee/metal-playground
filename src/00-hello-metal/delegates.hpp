@@ -17,7 +17,7 @@
 
 class MyMTKViewDelegate : public MTK::ViewDelegate {
 private:
-    Renderer *_renderer;
+    Renderer *_renderer{};
 
 public:
     MyMTKViewDelegate( MTL::Device* pDevice );

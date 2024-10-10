@@ -16,10 +16,20 @@
 #define CA_PRIVATE_IMPLEMENTATION
 
 #include "renderer.hpp"
+#include "delegates.hpp"
 
 int main( int argc, char* argv[] )
 {
 
-    std::cout << "hello metal" << std::endl;
+    NS::AutoreleasePool* autoreleasePool = NS::AutoreleasePool::alloc()->init();
+
+    MyAppDelegate appDelegate;
+
+    NS::Application* sharedApplication = NS::Application::sharedApplication();
+    sharedApplication->setDelegate(&appDelegate);
+    sharedApplication->run();
+
+    autoreleasePool->release();
+
     return 0;
 }

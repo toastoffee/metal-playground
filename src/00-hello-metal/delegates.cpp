@@ -12,16 +12,16 @@
 
 #include "delegates.hpp"
 
-MyMTKViewDelegate::MyMTKViewDelegate(MTL::Device *pDevice) {
-
+MyMTKViewDelegate::MyMTKViewDelegate(MTL::Device *pDevice)
+: MTK::ViewDelegate(), _renderer(new Renderer(pDevice)) {
 }
 
 MyMTKViewDelegate::~MyMTKViewDelegate() {
-
+    delete _renderer;
 }
 
 void MyMTKViewDelegate::drawInMTKView(MTK::View *pView) {
-    ViewDelegate::drawInMTKView(pView);
+    _renderer->draw(pView);
 }
 
 
@@ -36,7 +36,44 @@ MyAppDelegate::~MyAppDelegate() {
 }
 
 NS::Menu *MyAppDelegate::createMenuBar() {
-    return nullptr;
+    using NS::StringEncoding::UTF8StringEncoding;
+
+    NS::Menu* mainMenu = NS::Menu::alloc()->init();
+    NS::MenuItem* appMenuItem = NS::MenuItem::alloc()->init();
+    NS::Menu* appMenu = NS::Menu::alloc()->init(NS::String::string("app name", UTF8StringEncoding));
+
+    NS::String* appName = NS::RunningApplication::currentApplication()->localizedName();
+    NS::String* quitItemName = NS::String::string("Quit", UTF8StringEncoding) ->stringByAppendingString(appName);
+    SEL quitCb = NS::MenuItem::registerActionCallback("appQuit", [](void*, SEL, const NS::Object* pSender){
+        auto app = NS::Application::sharedApplication();
+        app->terminate(pSender);
+    });
+
+    NS::MenuItem* appQuitItem = appMenu->addItem(quitItemName, quitCb, NS::String::string("q", UTF8StringEncoding));
+    appQuitItem->setKeyEquivalentModifierMask(NS::EventModifierFlagCommand);
+    appMenuItem->setSubmenu(appMenu);
+
+    NS::MenuItem* windowMenuItem = NS::MenuItem::alloc()->init();
+    NS::Menu* windowMenu = NS::Menu::alloc()->init(NS::String::string("Window", UTF8StringEncoding));
+
+    SEL closeWindowCb = NS::MenuItem::registerActionCallback("windowClose", [](void*, SEL, const NS::Object*){
+        auto app = NS::Application::sharedApplication();
+        app->windows()->object<NS::Window>(0)->close();
+    });
+    NS::MenuItem* closeWindowItem = windowMenu->addItem( NS::String::string( "Close Window", UTF8StringEncoding ), closeWindowCb, NS::String::string( "w", UTF8StringEncoding ) );
+    closeWindowItem->setKeyEquivalentModifierMask( NS::EventModifierFlagCommand );
+
+    windowMenuItem->setSubmenu(windowMenu);
+
+    mainMenu->addItem(appMenuItem);
+    mainMenu->addItem(windowMenuItem);
+
+    appMenuItem->release();
+    windowMenuItem->release();
+    appMenu->release();
+    windowMenu->release();
+
+    return mainMenu->autorelease();
 }
 
 void MyAppDelegate::applicationWillFinishLaunching(NS::Notification *pNotification) {
