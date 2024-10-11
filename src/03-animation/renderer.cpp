@@ -12,12 +12,19 @@
 
 #include "renderer.hpp"
 
+const int Renderer::kMaxFramesInFlight = 3;
+
 Renderer::Renderer(MTL::Device *device)
-: _device(device->retain()) {
+: _device(device->retain())
+, _angle(0.f)
+, _frame(0) {
     _commandQueue = _device->newCommandQueue();
 
     buildShaders();
     buildBuffers();
+    buildFrameData();
+
+    _semaphore = dispatch_semaphore_create(kMaxFramesInFlight);
 }
 
 Renderer::~Renderer() {
@@ -30,12 +37,27 @@ Renderer::~Renderer() {
 
     _shaderLibrary->release();
     _argBuffer->release();
+
+    for (int i = 0; i < kMaxFramesInFlight; ++i) {
+        _frameData[i]->release();
+    }
 }
 
 void Renderer::draw(MTK::View *view) {
     NS::AutoreleasePool* pool = NS::AutoreleasePool::alloc()->init();
 
+    _frame = (_frame + 1) % kMaxFramesInFlight;
+    MTL::Buffer* frameDataBuffer = _frameData[_frame];
+
     MTL::CommandBuffer* cmd = _commandQueue->commandBuffer();
+    dispatch_semaphore_wait(_semaphore, DISPATCH_TIME_FOREVER);
+    cmd->addCompletedHandler(^void(MTL::CommandBuffer* pCmd) {
+        dispatch_semaphore_signal(this->_semaphore);
+    });
+
+    reinterpret_cast<FrameData *>(frameDataBuffer->contents())->angle = (_angle += 0.01f);
+    frameDataBuffer->didModifyRange(NS::Range::Make(0, sizeof(FrameData)));
+
     MTL::RenderPassDescriptor* rpd = view->currentRenderPassDescriptor();
     MTL::RenderCommandEncoder* enc = cmd->renderCommandEncoder(rpd);
 
@@ -44,6 +66,7 @@ void Renderer::draw(MTK::View *view) {
     enc->setVertexBuffer(_argBuffer, 0, 0);
     enc->useResource( _vertexPositionsBuffer, MTL::ResourceUsageRead );
     enc->useResource( _vertexColorsBuffer, MTL::ResourceUsageRead );
+    enc->setVertexBuffer(frameDataBuffer, 0, 1);
 
     enc->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(3));
 
@@ -73,10 +96,17 @@ void Renderer::buildShaders() {
             device float3* colors [[id(1)]];
         };
 
-        v2f vertex vertexMain( device const VertexData* vertexData [[buffer(0)]], uint vertexId [[vertex_id]] )
+        struct FrameData
         {
+            float angle;
+        };
+
+        v2f vertex vertexMain( device const VertexData* vertexData [[buffer(0)]], constant FrameData* frameData [[buffer(1)]], uint vertexId [[vertex_id]] )
+        {
+            float a = frameData->angle;
+            float3x3 rotationMatrix = float3x3( sin(a), cos(a), 0.0, cos(a), -sin(a), 0.0, 0.0, 0.0, 1.0 );
             v2f o;
-            o.position = float4( vertexData->positions[ vertexId ], 1.0 );
+            o.position = float4( rotationMatrix * vertexData->positions[ vertexId ], 1.0 );
             o.color = half3(vertexData->colors[ vertexId ]);
             return o;
         }
@@ -165,4 +195,11 @@ void Renderer::buildBuffers() {
 
     vertexFn->release();
     argumentEncoder->release();
+}
+
+void Renderer::buildFrameData() {
+    for ( int i = 0; i < Renderer::kMaxFramesInFlight; ++i )
+    {
+        _frameData[ i ]= _device->newBuffer( sizeof( FrameData ), MTL::ResourceStorageModeManaged );
+    }
 }
